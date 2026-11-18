@@ -6,6 +6,10 @@ assets/audio/ 에 저장하고 assets/audio/manifest.js 를 갱신합니다.
 manifest 에 파일이 등록되면 게임은 브라우저 음성 대신 이 녹음 파일을 재생합니다.
 
 사용법 (프로젝트 폴더에서):
+    # Microsoft Edge 자연 음성 (API 키 필요 없음, 기본값) — pip install edge-tts
+    python tools/generate_audio.py                      # SunHi(여성) 음성
+    python tools/generate_audio.py --voice ko-KR-InJoonNeural   # 남성 음성
+
     # ElevenLabs (한국어가 가장 자연스러움, MP3)
     set ELEVENLABS_API_KEY=...        (PowerShell: $env:ELEVENLABS_API_KEY="...")
     python tools/generate_audio.py --provider elevenlabs
@@ -49,7 +53,25 @@ def load_lines():
     lines = dict(data["lines"])
     for p in data["level1"] + data["level2"]:
         lines[p["id"]] = p["say"]
+    # '함께 세어 보기'용 숫자 문장: n-3200 = "삼천 이백", sum-3200 = "모두 삼천 이백 원이에요."
+    for n in range(100, 10000, 100):
+        lines[f"n-{n}"] = won(n)
+        lines[f"sum-{n}"] = f"모두 {won(n)} 원이에요."
     return lines
+
+
+DIGIT = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"]
+
+
+def won(n):
+    """3200 -> '삼천 이백' (js/money.js 의 won() 과 같은 읽기)"""
+    th, h = n // 1000, n % 1000 // 100
+    parts = []
+    if th:
+        parts.append(("" if th == 1 else DIGIT[th]) + "천")
+    if h:
+        parts.append(("" if h == 1 else DIGIT[h]) + "백")
+    return " ".join(parts)
 
 
 def post_json(url, body, headers):
@@ -57,6 +79,20 @@ def post_json(url, body, headers):
                                  headers={"Content-Type": "application/json", **headers})
     with urllib.request.urlopen(req, timeout=120) as r:
         return r.read()
+
+
+def tts_edge(text, out_base, args):
+    try:
+        import asyncio
+        import edge_tts
+    except ImportError:
+        sys.exit("edge-tts 가 필요합니다: pip install edge-tts")
+    out = out_base.with_suffix(".mp3")
+
+    async def run():
+        await edge_tts.Communicate(text, args.voice or "ko-KR-SunHiNeural", rate="-5%", pitch="+5Hz").save(str(out))
+    asyncio.run(run())
+    return out.name
 
 
 def tts_elevenlabs(text, out_base, args):
@@ -108,8 +144,8 @@ def write_manifest(provider, files):
 
 def main():
     ap = argparse.ArgumentParser(description="나래 마트 음성 파일 생성")
-    ap.add_argument("--provider", choices=["elevenlabs", "gemini"], default="elevenlabs")
-    ap.add_argument("--voice", default=None, help="ElevenLabs: Yuna 또는 voice_id / Gemini: Kore 등")
+    ap.add_argument("--provider", choices=["edge", "elevenlabs", "gemini"], default="edge")
+    ap.add_argument("--voice", default=None, help="edge: ko-KR-SunHiNeural 등 / ElevenLabs: Yuna 또는 voice_id / Gemini: Kore 등")
     ap.add_argument("--model", default=None)
     ap.add_argument("--only", nargs="*", help="특정 문장 id 만 다시 만들기")
     ap.add_argument("--reset", action="store_true", help="녹음 파일 삭제 후 브라우저 음성으로 되돌리기")
@@ -125,7 +161,7 @@ def main():
 
     if args.provider == "elevenlabs" and not args.voice:
         args.voice = "Yuna"
-    fn = tts_elevenlabs if args.provider == "elevenlabs" else tts_gemini
+    fn = {"edge": tts_edge, "elevenlabs": tts_elevenlabs, "gemini": tts_gemini}[args.provider]
 
     lines = load_lines()
     files = {}

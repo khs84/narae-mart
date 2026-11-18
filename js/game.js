@@ -190,10 +190,10 @@
       el.appendChild(lab);
       $('#counterTotal').textContent = num(run);
       tone(600 + i * 40, .12, 0, 'triangle', .1);
-      await Promise.all([Voice.sayText(won(run).replace(' 원', i === els.length - 1 ? ' 원' : '')), wait(700)]);
+      await Promise.all([Voice.playOr('n-' + run, won(run).replace(' 원', '')), wait(700)]);
       el.classList.remove('counting');
     }
-    await Voice.sayText('모두 ' + won(run) + '이에요.');
+    await Voice.playOr('sum-' + run, '모두 ' + won(run) + '이에요.');
     state.busy = false;
     setTimeout(() => { if (!state.busy && !settings.showTotal) renderCounter(); }, 2500);
   }

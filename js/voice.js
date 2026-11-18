@@ -49,7 +49,7 @@
   function playFile(src, myToken) {
     return new Promise(resolve => {
       audioEl = new Audio(src);
-      audioEl.playbackRate = Voice.rate >= 1 ? Voice.rate : 1;
+      audioEl.playbackRate = Voice.rate / 0.95; // 녹음 기본 속도(0.95)를 기준으로 조절
       const done = () => resolve();
       audioEl.onended = done;
       audioEl.onerror = done;
@@ -106,6 +106,12 @@
         if (CLIPS[id]) await playFile('assets/audio/' + CLIPS[id], my);
         else await speakText(lineText(id), my);
       }
+    },
+
+    /** 녹음 파일이 있으면 재생, 없으면 text 를 내장 음성으로 읽기 (다시 듣기 기록 안 함) */
+    async playOr(id, text) {
+      if (CLIPS[id]) return this.play(id, false);
+      return this.sayText(text);
     },
 
     /** 미리 녹음할 수 없는 즉석 문장(함께 세기 등). 녹음 모드에서도 내장 음성으로 읽습니다. */

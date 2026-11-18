@@ -27,25 +27,24 @@
 - 화면 크기에 맞춰 글자와 그림 크기가 자동으로 바뀝니다 (FHD·4K, 가로·세로 모두 지원).
 
 ## 음성
-- **기본**: 브라우저에 들어 있는 한국어 음성 중 가장 자연스러운 음성을 자동으로 고릅니다.
-  - **Microsoft Edge**에서 열면 "SunHi Online (Natural)" 같은 자연스러운 음성이 나옵니다(인터넷 연결 필요). 가장 추천하는 방법입니다.
-  - Chrome에서는 "Google 한국의" 음성을 씁니다.
-  - ⚙️ 설정에서 목소리와 말하기 속도를 바꿀 수 있습니다.
-- **고품질 녹음 음성(선택)**: AI 음성 API 키가 있으면 모든 문장을 미리 녹음해 둘 수 있습니다. 녹음해 두면 인터넷이 없어도 같은 목소리로 재생됩니다.
-  ```powershell
-  $env:ELEVENLABS_API_KEY = "키"
-  python tools/generate_audio.py --provider elevenlabs        # 한국어 Yuna 음성(MP3)
-  # 또는
-  $env:GEMINI_API_KEY = "키"
-  python tools/generate_audio.py --provider gemini --voice Kore
-  # 되돌리기
-  python tools/generate_audio.py --reset
-  ```
-  녹음 파일은 `assets/audio/`에 저장되고, `assets/audio/manifest.js`에 목록이 자동으로 기록됩니다.
+- **모든 문장을 자연스러운 AI 음성(Microsoft SunHi Natural)으로 미리 녹음해 두었습니다** (`assets/audio/`, 242개).
+  Chrome, Edge, 전자칠판 내장 브라우저 어디서나 같은 목소리로 나오고, 인터넷이 없어도 재생됩니다.
+- '함께 세어 보기'의 "천, 이천, 이천 백…"과 "모두 ○○ 원이에요"도 100원부터 9,900원까지 모두 녹음되어 있습니다.
+- ⚙️ 설정에서 말하기 속도를 바꿀 수 있습니다.
+- 녹음 파일이 없는 문장은 브라우저 내장 음성 가운데 가장 자연스러운 음성으로 읽습니다.
+
+### 음성 다시 만들기 / 바꾸기
+```powershell
+pip install edge-tts
+python tools/generate_audio.py --reset                       # 기존 녹음 지우기
+python tools/generate_audio.py                               # SunHi(여성, 기본)
+python tools/generate_audio.py --voice ko-KR-InJoonNeural    # 남성 목소리
+# API 키가 있으면: --provider elevenlabs (ELEVENLABS_API_KEY) / --provider gemini (GEMINI_API_KEY)
+```
 
 ## 물건·가격·문장 바꾸기
 `data/game-data.js`에서 물건 이름, 이모지, 가격, 읽어 줄 문장(`say`)과 안내 문장(`lines`)을 고칠 수 있습니다.
-녹음 음성을 쓰고 있다면, 고친 문장은 `python tools/generate_audio.py --only <id>`로 다시 녹음합니다.
+문장을 고친 뒤에는 `python tools/generate_audio.py --only <id>`로 그 문장만 다시 녹음합니다. 새 물건을 추가했다면 `python tools/generate_audio.py`를 실행하면 없는 것만 녹음합니다.
 
 ## GitHub Pages로 공개하기
 ```bash
