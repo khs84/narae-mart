@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="천 원·오천 원 지폐와 백 원 동전으로 물건을 사는 화폐 학습 가게놀이 (5학년 수학 Lesson 13)">
+  <meta name="theme-color" content="#2f7d5b">
+  <title>나래 마트</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 상단 바 -->
+    <header class="topbar">
+      <button class="brand" id="btnHome" aria-label="처음 화면으로">🏪 <span>나래 마트</span></button>
+      <div class="stamps" id="stamps" aria-label="모은 도장"></div>
+      <div class="tools">
+        <button class="tool" id="btnRepeat" aria-label="다시 듣기">🔊<span>다시 듣기</span></button>
+        <button class="tool" id="btnSettings" aria-label="설정">⚙️<span>설정</span></button>
+        <button class="tool" id="btnFull" aria-label="전체 화면">⛶<span>전체 화면</span></button>
+      </div>
+    </header>
+
+    <!-- 시작 화면 -->
+    <section class="screen" id="screenStart">
+      <div class="hero">
+        <div class="hero-emoji">🛒</div>
+        <h1>나래 마트에 어서 오세요!</h1>
+        <p>천 원, 오천 원 지폐와 백 원 동전으로 물건을 사 봐요.</p>
+      </div>
+      <div class="modes">
+        <button class="mode-card m1" data-mode="1">
+          <span class="mode-step">1단계</span>
+          <span class="mode-emoji">💵</span>
+          <strong>몇천 원 물건 사기</strong>
+          <small>천 원 · 오천 원 지폐 (11~12차시)</small>
+        </button>
+        <button class="mode-card m2" data-mode="2">
+          <span class="mode-step">2단계</span>
+          <span class="mode-emoji">💰</span>
+          <strong>몇천 몇백 원 물건 사기</strong>
+          <small>지폐 + 백 원 동전 (13~14차시)</small>
+        </button>
+        <button class="mode-card m3" data-mode="3">
+          <span class="mode-step">3단계</span>
+          <span class="mode-emoji">👛</span>
+          <strong>같은 값 물건 찾기</strong>
+          <small>지갑 속 돈 세기 (15차시)</small>
+        </button>
+      </div>
+      <div class="goal-row">
+        <span>오늘 살 물건 수</span>
+        <div class="seg" id="goalSeg">
+          <button data-goal="3">3개</button>
+          <button data-goal="5" class="on">5개</button>
+          <button data-goal="8">8개</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 진열대 -->
+    <section class="screen" id="screenShelf" hidden>
+      <h2 class="screen-title">🧺 사고 싶은 물건을 하나 골라 보세요</h2>
+      <div class="shelf" id="shelf"></div>
+    </section>
+
+    <!-- 계산 -->
+    <section class="screen" id="screenPay" hidden>
+      <div class="pay-layout">
+        <div class="item-panel">
+          <div class="item-big" id="payItem"></div>
+          <button class="ghost" id="btnBackShelf">↩ 다른 물건 고르기</button>
+        </div>
+        <div class="counter-panel">
+          <div class="counter-head">
+            <span>🧾 계산대</span>
+            <span class="total" id="counterTotal" aria-live="polite"></span>
+          </div>
+          <div class="counter" id="counter" aria-label="계산대에 올린 돈. 누르면 지갑으로 돌아갑니다."></div>
+          <div class="counter-actions">
+            <button class="btn soft" id="btnCount">👆 함께 세어 보기</button>
+            <button class="btn soft" id="btnClear">↺ 모두 돌려받기</button>
+            <button class="btn go" id="btnPay">💳 계산하기</button>
+          </div>
+        </div>
+      </div>
+      <div class="wallet">
+        <div class="wallet-label">👛 지갑<br><small>눌러서 꺼내요</small></div>
+        <div class="wallet-money" id="wallet"></div>
+      </div>
+    </section>
+
+    <!-- 같은 값 찾기 -->
+    <section class="screen" id="screenMatch" hidden>
+      <h2 class="screen-title">👛 지갑 속 돈과 값이 같은 물건을 찾아 보세요</h2>
+      <div class="match-wallet" id="matchWallet"></div>
+      <div class="match-options" id="matchOptions"></div>
+    </section>
+
+    <!-- 끝 -->
+    <section class="screen" id="screenFinish" hidden>
+      <div class="finish">
+        <div class="finish-cheer">
+          <div class="hero-emoji">🎉</div>
+          <h1>장보기 완료!</h1>
+          <p>정말 잘했어요!</p>
+          <div class="finish-actions">
+            <button class="btn go" id="btnAgain">🔁 한 번 더</button>
+            <button class="btn soft" id="btnToStart">🏠 처음으로</button>
+          </div>
+        </div>
+        <div class="receipt" id="receipt"></div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="fx" id="fx" aria-hidden="true"></div>
+  </div>
+
+  <!-- 설정 -->
+  <dialog id="settings">
+    <form method="dialog" class="settings">
+      <h2>⚙️ 선생님 설정</h2>
+      <label class="row">
+        <span>목소리</span>
+        <select id="setVoice"></select>
+      </label>
+      <p class="hint" id="voiceInfo"></p>
+      <label class="row">
+        <span>말하기 속도</span>
+        <input type="range" id="setRate" min="0.7" max="1.2" step="0.05">
+        <output id="rateOut"></output>
+      </label>
+      <label class="row check"><input type="checkbox" id="set500"> <span>500원 동전도 지갑에 넣기 (2단계)</span></label>
+      <label class="row check"><input type="checkbox" id="setTotal"> <span>계산대 합계를 항상 보여 주기 (도움이 필요한 학생용)</span></label>
+      <label class="row check"><input type="checkbox" id="setSfx"> <span>효과음 켜기</span></label>
+      <div class="settings-actions">
+        <button type="button" class="btn soft" id="btnVoiceTest">🔊 목소리 들어 보기</button>
+        <button value="close" class="btn go">닫기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="data/game-data.js"></script>
+  <script src="assets/audio/manifest.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/money.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
